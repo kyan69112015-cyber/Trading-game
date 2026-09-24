@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberTrade Card Legends</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            50: '#f0fdf4',
+                            500: '#10b981',
+                            600: '#059669',
+                            900: '#064e3b',
+                            dark: '#090d16',
+                            card: '#111827',
+                            border: '#1f2937',
+                            neon: '#00ffcc',
+                            purple: '#a855f7',
+                            gold: '#fbbf24'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050811;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+        }
+        .legendary-glow {
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.4);
+            border: 1px solid rgba(251, 191, 36, 0.6);
+        }
+        .epic-glow {
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+            border: 1px solid rgba(168, 85, 247, 0.6);
+        }
+        .card-tilt {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-tilt:hover {
+            transform: translateY(-8px) rotateX(2deg) rotateY(-2deg);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#050811] text-gray-100 selection:bg-cyan-500 selection:text-black">
+
+    <!-- AUTHENTICATION OVERLAY MODAL -->
+    <div id="auth-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-cyan-500/30 rounded-2xl max-w-md w-full p-8 shadow-2xl space-y-6 relative neon-glow">
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 bg-gradient-to-tr from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto text-black font-bold text-2xl shadow-lg">
+                    <i class="fa-solid fa-microchip"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-white tracking-wider">CYBERTRADE LEGENDS</h2>
+                <p id="auth-subtitle" class="text-xs text-gray-400">Authenticate to access your cloud card vault & trading terminal.</p>
+            </div>
+
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Terminal Handle (Email)</label>
+                    <input type="email" id="auth-email" required placeholder="operative@cybertrade.net" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Access Passcode (Password)</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono">
+                </div>
+                <div id="auth-error" class="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl hidden"></div>
+                
+                <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold rounded-xl transition shadow-lg shadow-cyan-500/20 text-sm">
+                    Initialize Terminal (Sign In)
+                </button>
+            </form>
+
+            <div class="text-center pt-2 border-t border-gray-800">
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold transition">
+                    Need a new operative account? Sign Up
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN PIN MODAL -->
+    <div id="admin-pin-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-cyan-500/40 rounded-2xl max-w-sm w-full p-6 space-y-4 relative shadow-2xl">
+            <button onclick="closeAdminPinModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-cyan-500/10 border border-cyan-500/30 rounded-xl flex items-center justify-center mx-auto text-cyan-400 text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">Security Clearance Required</h3>
+                <p class="text-xs text-gray-400">Enter Admin Security PIN (Default: <span class="font-mono text-cyan-400">7777</span>)</p>
+            </div>
+            <div>
+                <input type="password" id="admin-pin-input" maxlength="6" placeholder="Enter PIN..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-center text-xl text-white tracking-widest font-mono focus:outline-none focus:border-cyan-500">
+            </div>
+            <div id="admin-pin-error" class="text-xs text-red-400 text-center hidden">Incorrect security PIN.</div>
+            <button onclick="verifyAdminPin()" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl transition text-sm">
+                Authorize Access
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN APP HEADER -->
+    <header class="border-b border-gray-800 bg-[#090d16]/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center neon-glow">
+                    <i class="fa-solid fa-microchip text-black text-xl font-bold"></i>
+                </div>
+                <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
+                    CYBERTRADE <span class="text-xs uppercase px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">Legends</span>
+                </span>
+            </div>
+
+            <!-- Desktop Navigation Tabs -->
+            <nav class="hidden md:flex space-x-1 bg-gray-900/80 p-1.5 rounded-xl border border-gray-800">
+                <button onclick="switchTab('cards')" id="nav-cards" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-cyan-500 text-black shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-id-card mr-2"></i>My Vault
+                </button>
+                <button onclick="switchTab('market')" id="nav-market" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i class="fa-solid fa-store mr-2"></i>Marketplace
+                </button>
+                <button onclick="switchTab('redeem')" id="nav-redeem" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i class="fa-solid fa-ticket mr-2"></i>Redeem Code
+                </button>
+                <button onclick="promptAdminAccess()" id="nav-admin" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i class="fa-solid fa-shield-halved mr-2 text-cyan-400"></i>Admin Panel
+                </button>
+            </nav>
+
+            <!-- User Resources & Profile -->
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 bg-gray-900/90 border border-gray-800 px-3 py-1.5 rounded-xl">
+                    <i class="fa-solid fa-coins text-amber-400"></i>
+                    <span id="user-credits" class="font-mono font-bold text-amber-300">1,250</span>
+                    <button onclick="addCredits(100)" title="Claim Free Credits" class="ml-1 text-xs bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 px-1.5 py-0.5 rounded transition">+</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="user-display-email" class="hidden sm:inline text-xs text-gray-400 font-mono">operative@net</span>
+                    <button onclick="signOutUser()" title="Sign Out" class="p-2 rounded-xl bg-gray-900 border border-gray-800 hover:bg-red-500/20 hover:border-red-500/40 text-gray-400 hover:text-red-400 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Navigation bar -->
+        <div class="md:hidden flex justify-around bg-gray-900 border-t border-gray-800 py-2">
+            <button onclick="switchTab('cards')" id="mob-nav-cards" class="flex flex-col items-center text-xs text-cyan-400">
+                <i class="fa-solid fa-id-card text-base mb-1"></i>Vault
+            </button>
+            <button onclick="switchTab('market')" id="mob-nav-market" class="flex flex-col items-center text-xs text-gray-400">
+                <i class="fa-solid fa-store text-base mb-1"></i>Market
+            </button>
+            <button onclick="switchTab('redeem')" id="mob-nav-redeem" class="flex flex-col items-center text-xs text-gray-400">
+                <i class="fa-solid fa-ticket text-base mb-1"></i>Redeem
+            </button>
+            <button onclick="promptAdminAccess()" id="mob-nav-admin" class="flex flex-col items-center text-xs text-gray-400">
+                <i class="fa-solid fa-shield-halved text-base mb-1"></i>Admin
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- TAB 1: MY VAULT -->
+        <section id="view-cards" class="space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-900/60 to-gray-900 p-6 rounded-2xl border border-gray-800">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-white flex items-center">
+                        <i class="fa-solid fa-layer-group text-cyan-400 mr-3"></i>Card Vault & Deck
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Manage your owned cyber operatives, trade, or inspect stats.</p>
+                </div>
+                <div>
+                    <button onclick="openPackModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-black font-bold text-sm flex items-center shadow-lg shadow-cyan-500/20 transition">
+                        <i class="fa-solid fa-box-open mr-2"></i>Open Booster Pack (300 <i class="fa-solid fa-coins ml-1"></i>)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="flex flex-wrap gap-4 items-center justify-between bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                <div class="flex flex-wrap gap-2 items-center">
+                    <button onclick="filterCollection('all')" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 active-filter" data-filter="all">All Cards</button>
+                    <button onclick="filterCollection('Common')" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700" data-filter="Common">Common</button>
+                    <button onclick="filterCollection('Rare')" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30" data-filter="Rare">Rare</button>
+                    <button onclick="filterCollection('Epic')" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30" data-filter="Epic">Epic</button>
+                    <button onclick="filterCollection('Legendary')" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30" data-filter="Legendary">Legendary</button>
+                </div>
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text" id="search-collection" oninput="handleSearch(this.value)" placeholder="Search collection..." class="w-full bg-gray-950 border border-gray-800 rounded-xl pl-9 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500">
+                </div>
+            </div>
+
+            <!-- Cards Grid -->
+            <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+        <!-- TAB 2: MARKETPLACE -->
+        <section id="view-market" class="space-y-6 hidden">
+            <div class="bg-gradient-to-r from-gray-900 via-gray-900/60 to-gray-900 p-6 rounded-2xl border border-gray-800 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-white flex items-center">
+                        <i class="fa-solid fa-store text-emerald-400 mr-3"></i>Global Cyber Marketplace
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Buy and sell rare operatives with fellow traders worldwide.</p>
+                </div>
+            </div>
+            <div id="market-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Marketplace listings -->
+            </div>
+        </section>
+
+        <!-- TAB 3: REDEEM CODE -->
+        <section id="view-redeem" class="space-y-6 hidden">
+            <div class="max-w-2xl mx-auto bg-gray-900/80 border border-gray-800 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="text-center space-y-3 mb-8">
+                    <div class="w-16 h-16 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl flex items-center justify-center mx-auto text-cyan-400 text-2xl neon-glow">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-white">Redeem Secret Code</h2>
+                    <p class="text-gray-400 text-sm max-w-md mx-auto">Enter promo codes created in the Admin Panel to instantly claim custom operative cards.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Redemption Code</label>
+                        <div class="flex gap-3">
+                            <input type="text" id="redeem-input" placeholder="e.g. CYBER2026, VIPCARD" class="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500 font-mono uppercase">
+                            <button onclick="redeemCode()" class="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl transition shadow-lg shadow-cyan-500/20 flex items-center justify-center">
+                                <i class="fa-solid fa-bolt mr-2"></i>Redeem
+                            </button>
+                        </div>
+                    </div>
+                    <div id="redeem-feedback" class="text-sm p-3 rounded-xl hidden"></div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-800">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Active Code Directory</h3>
+                    <div id="player-codes-directory" class="space-y-2">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: ADMIN PANEL (PIN PROTECTED) -->
+        <section id="view-admin" class="space-y-6 hidden">
+            <div class="bg-gradient-to-r from-gray-900 via-gray-900/60 to-gray-900 p-6 rounded-2xl border border-gray-800 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-white flex items-center">
+                        <i class="fa-solid fa-shield-halved text-cyan-400 mr-3"></i>Admin Panel & Code Management
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Create and configure redemption codes synchronized with Firestore.</p>
+                </div>
+                <button onclick="lockAdminSession()" class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-bold rounded-xl border border-red-500/30 transition">
+                    <i class="fa-solid fa-lock mr-1"></i>Lock Admin Session
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Add Code Form -->
+                <div class="lg:col-span-1 bg-gray-900/80 border border-gray-800 rounded-2xl p-6 space-y-5">
+                    <h2 class="text-lg font-bold text-white flex items-center">
+                        <i class="fa-solid fa-circle-plus text-cyan-400 mr-2"></i>Create New Code
+                    </h2>
+                    
+                    <form id="admin-code-form" onsubmit="handleCreateCode(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Redemption Code</label>
+                            <input type="text" id="admin-code" required placeholder="e.g. LEGENDARY01" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono uppercase">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Card Name</label>
+                            <input type="text" id="admin-card-name" required placeholder="e.g. Cyber Samurai" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Rarity</label>
+                                <select id="admin-rarity" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                                    <option value="Common">Common</option>
+                                    <option value="Rare">Rare</option>
+                                    <option value="Epic">Epic</option>
+                                    <option value="Legendary" selected>Legendary</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Power Stat</label>
+                                <input type="number" id="admin-power" required value="950" min="100" max="9999" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Photo URL / Unsplash Link</label>
+                            <input type="url" id="admin-image" required placeholder="https://images.unsplash.com/..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Max Uses (0 = Unlimited)</label>
+                            <input type="number" id="admin-max-uses" value="100" min="0" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono">
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-black font-bold rounded-xl transition shadow-lg shadow-cyan-500/20 text-sm">
+                            <i class="fa-solid fa-floppy-disk mr-2"></i>Deploy Code to Firestore
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Existing Codes Management Table -->
+                <div class="lg:col-span-2 bg-gray-900/80 border border-gray-800 rounded-2xl p-6 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-white flex items-center">
+                            <i class="fa-solid fa-ticket-simple text-cyan-400 mr-2"></i>Active Codes Directory
+                        </h2>
+                        <button onclick="loadCodesFromFirestore()" class="text-xs bg-gray-800 hover:bg-gray-700 text-cyan-400 px-3 py-1.5 rounded-lg border border-gray-700 transition">
+                            <i class="fa-solid fa-rotate mr-1"></i>Refresh
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-800 text-xs font-semibold text-gray-400 uppercase">
+                                    <th class="py-3 px-3">Code</th>
+                                    <th class="py-3 px-3">Card Reward</th>
+                                    <th class="py-3 px-3">Rarity</th>
+                                    <th class="py-3 px-3">Uses</th>
+                                    <th class="py-3 px-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-codes-table-body" class="text-sm divide-y divide-gray-800/60">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Card Opening Modal -->
+    <div id="pack-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full p-6 text-center space-y-6 relative shadow-2xl">
+            <button onclick="closePackModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="pack-opening-content" class="space-y-4">
+                <div class="w-24 h-24 bg-cyan-500/10 border border-cyan-500/30 rounded-3xl mx-auto flex items-center justify-center text-cyan-400 text-4xl neon-glow animate-pulse">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white">Cyber Booster Pack</h3>
+                <p class="text-gray-400 text-sm">Unlocks 1 randomized card ranging from Common to Legendary. Costs 300 credits.</p>
+                <button onclick="openPack()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-black font-bold rounded-xl shadow-lg shadow-cyan-500/20 transition">
+                    Open Pack Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="custom-toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div id="toast-content" class="bg-gray-900 border border-cyan-500/40 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 neon-glow">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-cyan-400 text-xl"></i>
+            <div>
+                <h4 id="toast-title" class="font-bold text-sm">Success</h4>
+                <p id="toast-msg" class="text-xs text-gray-300">Operation completed successfully.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK & Application Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let app, db, auth, currentUserId = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cybertrade-legends-default';
+        let isSignUpMode = false;
+        let adminAuthorized = false;
+
+        window.AppState = {
+            credits: 1250,
+            cards: [
+                { id: 'c1', name: 'Cyber Kunoichi', rarity: 'Legendary', power: 980, image: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80', description: 'Elite stealth operative.' },
+                { id: 'c2', name: 'Neon Hacker', rarity: 'Epic', power: 840, image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80', description: 'Breaches mainframes instantly.' }
+            ],
+            marketListings: [
+                { id: 'm1', cardId: 'c2', name: 'Neon Hacker', rarity: 'Epic', power: 840, image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80', price: 220, seller: '0x94...B21' }
+            ],
+            codes: [
+                { code: 'CYBER2026', cardName: 'Quantum Overlord', rarity: 'Legendary', power: 999, image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80', maxUses: 500, usedCount: 12 }
+            ],
+            activeFilter: 'all',
+            searchQuery: ''
+        };
+
+        // Initialize Firebase & Auth state listener
+        async function initFirebase() {
+            try {
+                if (typeof __firebase_config !== 'undefined') {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    }
+
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            currentUserId = user.uid;
+                            document.getElementById('auth-modal').classList.add('hidden');
+                            document.getElementById('user-display-email').textContent = user.email || 'Anonymous Operative';
+                            await loadUserData();
+                            loadCodesFromFirestore();
+                        } else {
+                            document.getElementById('auth-modal').classList.remove('hidden');
+                        }
+                    });
+                } else {
+                    // Fallback local mode
+                    document.getElementById('auth-modal').classList.add('hidden');
+                    currentUserId = 'local-user';
+                    window.renderAll();
+                }
+            } catch (e) {
+                console.error('Firebase Init Error:', e);
+                document.getElementById('auth-modal').classList.add('hidden');
+                window.renderAll();
+            }
+        }
+
+        window.toggleAuthMode = function() {
+            isSignUpMode = !isSignUpMode;
+            document.getElementById('auth-subtitle').textContent = isSignUpMode ? 'Register a new profile to save your collection to Firestore.' : 'Authenticate to access your cloud card vault & trading terminal.';
+            document.getElementById('auth-submit-btn').textContent = isSignUpMode ? 'Register Operative (Sign Up)' : 'Initialize Terminal (Sign In)';
+            document.getElementById('auth-toggle-btn').textContent = isSignUpMode ? 'Already have an operative account? Sign In' : 'Need a new operative account? Sign Up';
+        };
+
+        window.handleAuthSubmit = async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            const errDiv = document.getElementById('auth-error');
+            errDiv.classList.add('hidden');
+
+            try {
+                if (!auth) {
+                    // Local fallback
+                    document.getElementById('auth-modal').classList.add('hidden');
+                    window.renderAll();
+                    return;
+                }
+                if (isSignUpMode) {
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                }
+            } catch (e) {
+                errDiv.textContent = e.message;
+                errDiv.classList.remove('hidden');
+            }
+        };
+
+        window.signOutUser = async function() {
+            if (auth) await signOut(auth);
+            window.location.reload();
+        };
+
+        // Firestore User Data Sync
+        async function loadUserData() {
+            if (!db || !currentUserId) return;
+            try {
+                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'vault', 'profile');
+                const snap = await getDoc(userDocRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    window.AppState.credits = data.credits ?? 1250;
+                    window.AppState.cards = data.cards ?? window.AppState.cards;
+                } else {
+                    await setDoc(userDocRef, { credits: window.AppState.credits, cards: window.AppState.cards });
+                }
+            } catch (e) {
+                console.error("Error loading user data:", e);
+            }
+            window.renderAll();
+        }
+
+        async function saveUserData() {
+            if (!db || !currentUserId) return;
+            try {
+                const userDocRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'vault', 'profile');
+                await setDoc(userDocRef, { credits: window.AppState.credits, cards: window.AppState.cards });
+            } catch (e) {
+                console.error("Error saving user data:", e);
+            }
+        }
+
+        // Admin PIN Gate
+        window.promptAdminAccess = function() {
+            if (adminAuthorized) {
+                switchTab('admin');
+            } else {
+                document.getElementById('admin-pin-modal').classList.remove('hidden');
+                document.getElementById('admin-pin-input').value = '';
+                document.getElementById('admin-pin-error').classList.add('hidden');
+            }
+        };
+
+        window.closeAdminPinModal = function() {
+            document.getElementById('admin-pin-modal').classList.add('hidden');
+        };
+
+        window.verifyAdminPin = function() {
+            const enteredPin = document.getElementById('admin-pin-input').value.trim();
+            if (enteredPin === '7777') {
+                adminAuthorized = true;
+                closeAdminPinModal();
+                switchTab('admin');
+                showToast('Admin Authorized', 'Welcome to the security command center.', 'success');
+            } else {
+                document.getElementById('admin-pin-error').classList.remove('hidden');
+            }
+        };
+
+        window.lockAdminSession = function() {
+            adminAuthorized = false;
+            switchTab('cards');
+            showToast('Admin Locked', 'Security session terminated.', 'success');
+        };
+
+        // Tab Switcher
+        window.switchTab = function(tabName) {
+            ['cards', 'market', 'redeem', 'admin'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) navBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all text-gray-400 hover:text-white hover:bg-gray-800";
+                const mobBtn = document.getElementById(`mob-nav-${t}`);
+                if (mobBtn) mobBtn.className = "flex flex-col items-center text-xs text-gray-400";
+            });
+
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            if (activeNav) activeNav.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-cyan-500 text-black shadow-lg shadow-cyan-500/20";
+            const activeMob = document.getElementById(`mob-nav-${tabName}`);
+            if (activeMob) activeMob.className = "flex flex-col items-center text-xs text-cyan-400";
+
+            if (tabName === 'admin' || tabName === 'redeem') {
+                loadCodesFromFirestore();
+            }
+        };
+
+        window.showToast = function(title, msg, type = 'success') {
+            const toast = document.getElementById('custom-toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-msg').textContent = msg;
+            const icon = document.getElementById('toast-icon');
+            icon.className = type === 'success' ? "fa-solid fa-circle-check text-cyan-400 text-xl" : "fa-solid fa-triangle-exclamation text-amber-400 text-xl";
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 3500);
+        };
+
+        window.addCredits = function(amt) {
+            window.AppState.credits += amt;
+            saveUserData();
+            document.getElementById('user-credits').textContent = window.AppState.credits.toLocaleString();
+            showToast('Credits Claimed', `+${amt} Cyber Credits added!`, 'success');
+        };
+
+        // Render UI
+        window.renderAll = function() {
+            document.getElementById('user-credits').textContent = window.AppState.credits.toLocaleString();
+
+            const grid = document.getElementById('cards-grid');
+            const filtered = window.AppState.cards.filter(card => {
+                const matchesFilter = window.AppState.activeFilter === 'all' || card.rarity === window.AppState.activeFilter;
+                const matchesSearch = card.name.toLowerCase().includes(window.AppState.searchQuery.toLowerCase());
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-gray-500 bg-gray-900/30 rounded-2xl border border-gray-800">
+                        <i class="fa-solid fa-box-archive text-4xl mb-3 text-gray-600"></i>
+                        <p class="text-base font-semibold">No cyber cards found in this category.</p>
+                    </div>
+                `;
+            } else {
+                grid.innerHTML = filtered.map(card => {
+                    const rarityColor = card.rarity === 'Legendary' ? 'text-amber-400 border-amber-500/40 legendary-glow' :
+                                        card.rarity === 'Epic' ? 'text-purple-400 border-purple-500/40 epic-glow' :
+                                        card.rarity === 'Rare' ? 'text-blue-400 border-blue-500/30' : 'text-gray-300 border-gray-700';
+                    return `
+                        <div class="bg-gray-900 border ${rarityColor} rounded-2xl p-4 flex flex-col justify-between card-tilt relative overflow-hidden group">
+                            <div class="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${rarityColor}">
+                                ${card.rarity}
+                            </div>
+                            <div class="w-full h-48 rounded-xl overflow-hidden mb-4 relative bg-gray-950">
+                                <img src="${card.image}" alt="${card.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/400x400/111827/00ffcc?text=CYBER+CARD'">
+                                <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-60"></div>
+                                <div class="absolute bottom-2 left-3 font-mono font-bold text-xs text-cyan-300 flex items-center">
+                                    <i class="fa-solid fa-bolt mr-1"></i>PWR: ${card.power}
+                                </div>
+                            </div>
+                            <div class="space-y-1 mb-4">
+                                <h3 class="font-bold text-white text-base truncate">${card.name}</h3>
+                                <p class="text-xs text-gray-400 line-clamp-2">${card.description}</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-gray-800/80">
+                                <span class="text-xs text-gray-500 font-mono">ID: #${card.id}</span>
+                                <button onclick="listOnMarket('${card.id}')" class="px-3 py-1.5 bg-gray-800 hover:bg-cyan-500 hover:text-black text-xs font-bold rounded-lg transition">
+                                    <i class="fa-solid fa-tag mr-1"></i>Sell
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Marketplace Grid
+            const marketGrid = document.getElementById('market-grid');
+            if (window.AppState.marketListings.length === 0) {
+                marketGrid.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-gray-500 bg-gray-900/30 rounded-2xl border border-gray-800">
+                        <i class="fa-solid fa-store-slash text-4xl mb-3 text-gray-600"></i>
+                        <p class="text-base font-semibold">Marketplace is currently empty.</p>
+                    </div>
+                `;
+            } else {
+                marketGrid.innerHTML = window.AppState.marketListings.map(item => `
+                    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+                        <div class="w-full h-48 rounded-xl overflow-hidden mb-4 relative bg-gray-950">
+                            <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
+                            <div class="absolute bottom-2 left-3 font-mono font-bold text-xs text-cyan-300">PWR: ${item.power}</div>
+                        </div>
+                        <div class="space-y-1 mb-4">
+                            <h3 class="font-bold text-white text-base">${item.name}</h3>
+                            <p class="text-xs text-gray-400">Seller: <span class="text-cyan-400 font-mono">${item.seller}</span></p>
+                            <p class="text-sm font-bold text-amber-400 font-mono mt-1"><i class="fa-solid fa-coins mr-1"></i>${item.price} Credits</p>
+                        </div>
+                        <button onclick="buyMarketItem('${item.id}')" class="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl transition shadow-lg shadow-emerald-500/20">
+                            Buy Operative
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            renderCodesTables();
+        };
+
+        window.filterCollection = function(rarity) {
+            window.AppState.activeFilter = rarity;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === rarity) {
+                    btn.className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 active-filter";
+                } else {
+                    btn.className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700";
+                }
+            });
+            window.renderAll();
+        };
+
+        window.handleSearch = function(val) {
+            window.AppState.searchQuery = val;
+            window.renderAll();
+        };
+
+        // Booster Packs
+        window.openPackModal = function() { document.getElementById('pack-modal').classList.remove('hidden'); };
+        window.closePackModal = function() { document.getElementById('pack-modal').classList.add('hidden'); window.renderAll(); };
+
+        window.openPack = function() {
+            if (window.AppState.credits < 300) {
+                showToast('Insufficient Credits', 'Need at least 300 credits.', 'error');
+                return;
+            }
+            window.AppState.credits -= 300;
+            const rarities = ['Common', 'Rare', 'Epic', 'Legendary'];
+            const chosenRarity = rarities[Math.floor(Math.random() * rarities.length)];
+            const power = Math.floor(400 + Math.random() * 550);
+            
+            const newCard = {
+                id: 'c_' + Math.random().toString(36).substring(2, 7),
+                name: `Cyber Operative #${Math.floor(Math.random()*900+100)}`,
+                rarity: chosenRarity,
+                power: power,
+                image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80',
+                description: 'Unboxed from booster pack.'
+            };
+            window.AppState.cards.unshift(newCard);
+            saveUserData();
+
+            document.getElementById('pack-opening-content').innerHTML = `
+                <div class="p-4 bg-gray-950 border border-cyan-500/50 rounded-2xl neon-glow space-y-3">
+                    <div class="text-xs uppercase font-bold text-cyan-400">🎉 Unlocked!</div>
+                    <img src="${newCard.image}" class="w-full h-40 object-cover rounded-xl" alt="Card">
+                    <h4 class="text-lg font-bold text-white">${newCard.name}</h4>
+                    <p class="text-xs text-gray-400">${newCard.rarity} | Power: ${newCard.power}</p>
+                </div>
+                <button onclick="closePackModal()" class="w-full py-3 bg-cyan-500 text-black font-bold rounded-xl">Claim</button>
+            `;
+            window.renderAll();
+        };
+
+        // Marketplace actions
+        window.listOnMarket = function(cardId) {
+            const card = window.AppState.cards.find(c => c.id === cardId);
+            if (!card) return;
+            window.AppState.cards = window.AppState.cards.filter(c => c.id !== cardId);
+            window.AppState.marketListings.push({
+                id: 'm_' + Math.random().toString(36).substring(2, 7),
+                cardId: card.id,
+                name: card.name,
+                rarity: card.rarity,
+                power: card.power,
+                image: card.image,
+                price: Math.floor(card.power * 0.4),
+                seller: 'You'
+            });
+            saveUserData();
+            showToast('Listed', `${card.name} listed on the market!`, 'success');
+            window.renderAll();
+        };
+
+        window.buyMarketItem = function(marketId) {
+            const item = window.AppState.marketListings.find(m => m.id === marketId);
+            if (!item || window.AppState.credits < item.price) {
+                showToast('Error', 'Insufficient credits or item unavailable.', 'error');
+                return;
+            }
+            window.AppState.credits -= item.price;
+            window.AppState.marketListings = window.AppState.marketListings.filter(m => m.id !== marketId);
+            window.AppState.cards.push({
+                id: item.cardId,
+                name: item.name,
+                rarity: item.rarity,
+                power: item.power,
+                image: item.image,
+                description: 'Purchased from market.'
+            });
+            saveUserData();
+            showToast('Purchased', `Acquired ${item.name}!`, 'success');
+            window.renderAll();
+        };
+
+        // Codes Firestore Integration
+        window.loadCodesFromFirestore = async function() {
+            if (!db) { renderCodesTables(); return; }
+            try {
+                const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'redemption_codes'));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    const codes = [];
+                    snap.forEach(d => codes.push({ id: d.id, ...d.data() }));
+                    window.AppState.codes = codes;
+                }
+            } catch (e) { console.error(e); }
+            renderCodesTables();
+        };
+
+        window.renderCodesTables = function() {
+            const playerDir = document.getElementById('player-codes-directory');
+            if (playerDir) {
+                playerDir.innerHTML = window.AppState.codes.map(c => `
+                    <div class="flex items-center justify-between bg-gray-950 p-3 rounded-xl border border-gray-800">
+                        <div>
+                            <span class="font-mono font-bold text-cyan-400">${c.code}</span>
+                            <span class="text-xs text-gray-400 ml-2">(${c.cardName} - ${c.rarity}, PWR: ${c.power})</span>
+                        </div>
+                        <button onclick="document.getElementById('redeem-input').value='${c.code}'; switchTab('redeem');" class="text-xs bg-gray-800 hover:bg-cyan-500 hover:text-black px-3 py-1.5 rounded-lg">Redeem</button>
+                    </div>
+                `).join('');
+            }
+
+            const adminTable = document.getElementById('admin-codes-table-body');
+            if (adminTable) {
+                adminTable.innerHTML = window.AppState.codes.map(c => `
+                    <tr class="hover:bg-gray-950/60">
+                        <td class="py-3 px-3 font-mono font-bold text-cyan-400">${c.code}</td>
+                        <td class="py-3 px-3 text-white">${c.cardName}</td>
+                        <td class="py-3 px-3 text-xs uppercase font-bold text-purple-400">${c.rarity}</td>
+                        <td class="py-3 px-3 font-mono text-gray-400">${c.usedCount || 0}/${c.maxUses || '∞'}</td>
+                        <td class="py-3 px-3 text-right">
+                            <button onclick="deleteCode('${c.code}')" class="text-red-400 hover:text-red-300 p-1.5 rounded-lg bg-red-500/10"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        };
+
+        window.handleCreateCode = async function(event) {
+            event.preventDefault();
+            const codeInput = document.getElementById('admin-code').value.trim().toUpperCase();
+            const newCode = {
+                code: codeInput,
+                cardName: document.getElementById('admin-card-name').value.trim(),
+                rarity: document.getElementById('admin-rarity').value,
+                power: parseInt(document.getElementById('admin-power').value),
+                image: document.getElementById('admin-image').value.trim(),
+                maxUses: parseInt(document.getElementById('admin-max-uses').value),
+                usedCount: 0
+            };
+
+            if (db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'redemption_codes', codeInput), newCode);
+                } catch (e) { console.error(e); }
+            }
+            window.AppState.codes.push(newCode);
+            document.getElementById('admin-code-form').reset();
+            showToast('Code Created', `Code ${codeInput} deployed successfully!`, 'success');
+            renderCodesTables();
+        };
+
+        window.deleteCode = async function(codeStr) {
+            if (db) {
+                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'redemption_codes', codeStr)); } catch(e){console.error(e);}
+            }
+            window.AppState.codes = window.AppState.codes.filter(c => c.code !== codeStr);
+            showToast('Deleted', `Code ${codeStr} removed.`, 'success');
+            renderCodesTables();
+        };
+
+        window.redeemCode = async function() {
+            const input = document.getElementById('redeem-input').value.trim().toUpperCase();
+            const feedback = document.getElementById('redeem-feedback');
+            feedback.classList.remove('hidden');
+
+            const codeObj = window.AppState.codes.find(c => c.code === input);
+            if (!codeObj) {
+                feedback.className = "text-sm p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400";
+                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2"></i>Invalid or expired redemption code.`;
+                return;
+            }
+
+            codeObj.usedCount = (codeObj.usedCount || 0) + 1;
+            if (db) {
+                try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'redemption_codes', codeObj.code), codeObj); } catch(e){console.error(e);}
+            }
+
+            const card = {
+                id: 'c_' + Math.random().toString(36).substring(2, 7),
+                name: codeObj.cardName,
+                rarity: codeObj.rarity,
+                power: codeObj.power,
+                image: codeObj.image,
+                description: `Claimed via promo code: ${codeObj.code}`
+            };
+            window.AppState.cards.unshift(card);
+            saveUserData();
+
+            feedback.className = "text-sm p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400";
+            feedback.innerHTML = `<i class="fa-solid fa-circle-check mr-2"></i>Success! Claimed <b>${card.name}</b> (${card.rarity})!`;
+            document.getElementById('redeem-input').value = '';
+            showToast('Redemption Successful', `Added ${card.name} to vault!`, 'success');
+            window.renderAll();
+        };
+
+        window.onload = function() {
+            initFirebase();
+        };
+    </script>
+</body>
+</html>
